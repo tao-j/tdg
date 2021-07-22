@@ -9,35 +9,38 @@ from tensorflow import keras
 #from evolution_fixedroot import strto4rowmx
 import h5py
 from numpy import linalg as LA
+
+
 #%%
-def predict(filenamex,filenamey,modelname):
+def predict(filenamex, filenamey, modelname):
     model = keras.models.load_model(modelname)
     print('model loaded')
-#%%
-    fX = h5py.File(filenamex,'r')
+    #%%
+    fX = h5py.File(filenamex, 'r')
     X_index = list(fX.keys())
     print("X datasets:", X_index)
-    fY = h5py.File(filenamey,'r')
+    fY = h5py.File(filenamey, 'r')
     Y_index = list(fY.keys())
     print("Y datasets:", Y_index)
 
-#%%
+    #%%
     Numdataset = len(X_index)
     Resnorm = 0
     print("predict begins!")
     for i in range(Numdataset):
-        print("dataset:",X_index[i])
+        print("dataset:", X_index[i])
         xindex = X_index[i]
         yindex = Y_index[i]
         testX = np.array(fX[xindex])
         testY = np.array(fY[yindex])
         pred = model.predict(testX)
-        res = np.subtract(testY,pred)
+        res = np.subtract(testY, pred)
         resnorm = [LA.norm(v) for v in res]
-        rdataset = sum(resnorm)/len(resnorm)
+        rdataset = sum(resnorm) / len(resnorm)
         print("MSRE:", rdataset)
         Resnorm = Resnorm + rdataset
-    return Resnorm/Numdataset    
+    return Resnorm / Numdataset
+
 
 #%%
 """
@@ -72,6 +75,4 @@ for linex,liney in zip(fx,fy):
         if i%2000 == 0:
             print(i)
 resnorm = resnorm/i
-"""           
-            
-            
+"""
