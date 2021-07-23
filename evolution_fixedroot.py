@@ -11,12 +11,14 @@ import numpy as np
 from mutations import substitute, tandemdup, delete
 from random import uniform
 
+def sample_multinomial(P):
+    rnd = np.random.rand()
+    return np.sum(rnd >= np.cumsum(P))
 
-def generate_root(x, n, P):
-    s = x
-    dist = multinomial(1, P)  # mutation dist
+
+def generate_root(s, n, P):
     while len(s) < n:
-        k = np.argmax(dist.rvs())
+        k = sample_multinomial(P)
         if k == 0:
             s = delete(s)
         elif k == 1:
