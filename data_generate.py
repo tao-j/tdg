@@ -5,6 +5,7 @@ Created on Thu Feb 18 19:51:40 2021
 @author: hl2nu
 """
 import numpy as np
+from tqdm import tqdm
 from evolve import *
 import h5py
 import time
@@ -27,48 +28,41 @@ start = time.time()
 n = 1000 # string length 
 '''
 deletion = False
-periods = [1, 2, 3]
-n = 3
-output_size = 11
-filename = "train_toy_period[1,2,3]_del"
+periods = [3]
+n_period = 3
+root_len = 10
+filename = "train_toy_period[3]"
 
 n_dist = 5000  # num of dists
 n_sample = 10  # num of samples per dist
 # n_dataset =  10# num of dataset being generated
-datalength = np.array([100])
-f_trainX = h5py.File("data/" + "X" + filename, "w")
-f_trainY = h5py.File("data/" + "Y" + filename, "w")
+datalength = range(128, 1024, 32)
+f_trainX = h5py.File("data/" + "xX" + filename, "w")
+f_trainY = h5py.File("data/" + "xY" + filename, "w")
 
 print("filename:", filename)
-print("data generation begins!")
-for l in datalength:
-    times = time.time()
-    l = int(l)
-    X = np.empty(shape=(n_sample * n_dist * len(periods), int(l), 4), dtype=float)
-    Y = np.empty(shape=(n_sample * n_dist * len(periods), output_size),
+for target_len in datalength:
+    print(f"n_dist {n_dist} len: {target_len} {n_period}")
+    print('datalength=', target_len)
+    X = np.empty(shape=(n_sample * n_dist * len(periods), target_len, 4), dtype=float)
+    Y = np.empty(shape=(n_sample * n_dist * len(periods), max(periods) * n_period + 2),
                  dtype=float)
-    print('datalength=', l)
-    k = 0
-    for i in range(n_dist):
-        Plist = [
-            randdist_period_size_del(period, n, output_size)
-            for period in periods
-        ]
-        # P = randdist_period_size(2, n,10)
-        for j in range(n_sample):
-            for itrper in range(len(periods)):
-                prd = periods[itrper]
-                P = Plist[itrper]
-                s = Sequence(np.random.randint(4, size=10), l, P[0:prd * n + 2])
+
+    for pi, period in enumerate(periods):
+        output_size = period * n_period + 2
+        for di in tqdm(range(n_dist)):
+            P = SequenceDup.gen_dist(period, n_period, output_size)
+            # P = randdist_period_size_del(period, n_period, output_size)
+            for si in range(n_sample):
+                s = SequenceDup(np.random.randint(4, size=root_len), target_len, P[0:output_size])
                 x = s.evolve()
+                k = di * n_sample + si
                 X[k] = seqto4rowmx(x)
                 Y[k] = P
-                k += 1
-    f_trainX.create_dataset("X_" + str(l), data=X)
-    f_trainY.create_dataset("Y_" + str(l), data=Y)
-    print("dataset_length", l, "stored")
-    timee = time.time()
-    print(timee - times)
+
+    f_trainX.create_dataset("X_" + str(target_len), data=X)
+    f_trainY.create_dataset("Y_" + str(target_len), data=Y)
+    print("dataset_length", target_len, "stored")
 f_trainX.close()
 f_trainY.close()
 
