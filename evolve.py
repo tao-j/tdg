@@ -6,33 +6,65 @@ Created on Tue Feb 16 21:17:01 2021
 
 data generation_fixed root
 """
-from scipy.stats import multinomial
 import numpy as np
-from mutations import substitute, tandemdup, delete
 from random import uniform
-
-def sample_multinomial(P):
-    rnd = np.random.rand()
-    return np.sum(rnd >= np.cumsum(P))
+import random
 
 
-def generate_root(s, n, P):
-    while len(s) < n:
-        k = sample_multinomial(P)
-        if k == 0:
-            s = delete(s)
-        elif k == 1:
-            s = substitute(s)
-        else:
-            s = tandemdup(s, k - 1)
-    return s[0:n]
+def sample_multinomial(cumsum_p):
+    rnd = random.random()
+    return np.sum(rnd >= cumsum_p)
 
 
-def generate_root_Nmut(x, n, P):
-    s = x
-    dist = multinomial(1, P)  # mutation dist
+class Sequence():
+    def __init__(self, root, target_len, P):
+        self.target_len = target_len
+        self.len = len(root)
+        self.x = np.empty(target_len + len(P), dtype=np.int64)
+        self.x[:self.len] = root
+        self.P = P
+        self.cumsum_p = np.cumsum(P)
+
+    def evolve(self):
+        while self.len < self.target_len:
+            k = sample_multinomial(self.cumsum_p)
+            if k == 0 and self.len > 1:
+                self.delete()
+            elif k == 1:
+                self.substitute()
+            else:
+                self.tandemdup(k - 1)
+        return self.x[:self.target_len]
+
+    def substitute(self):
+        i = random.randint(0, self.len - 1)
+        p = random.randint(1, 3)
+        # print(f"sub {i} + {p}")
+        # print(self.x[:self.len])
+        self.x[i] = (self.x[i] + p) % 4
+        # print(self.x[:self.len])
+
+    def tandemdup(self, l):
+        i = random.randint(0, self.len - l)
+        # print(f"ins {i} {l}")
+        # print(self.x[:self.len])
+        self.x[i + l:self.len + l] = self.x[i:self.len]
+        self.len += l
+        # print(self.x[:self.len])
+
+    def delete(self):
+        i = random.randint(0, self.len - 1)
+        # print(f"del {i}")
+        # print(self.x[:self.len])
+        if i != self.len - 1:
+            self.x[i:self.len-1] = self.x[i+1:self.len]
+        self.len -= 1
+        # print(self.x[:self.len])
+
+
+def generate_root_Nmut(s, n, P):
     for mut in range(n):
-        k = np.argmax(dist.rvs())
+        k = sample_multinomial(P)
         if k == 0:
             s = delete(s)
         elif k == 1:
@@ -42,11 +74,9 @@ def generate_root_Nmut(x, n, P):
     return s
 
 
-def generate_root_nodel(x, n, P):
-    s = x
-    dist = multinomial(1, P)  # mutation dist
+def generate_root_nodel(s, n, P):
     while len(s) < n:
-        k = np.argmax(dist.rvs())
+        k = sample_multinomial(P)
         if k == 0:
             s = substitute(s)
         else:
@@ -54,11 +84,9 @@ def generate_root_nodel(x, n, P):
     return s[0:n]
 
 
-def generate_root_nosub(x, n, P):
-    s = x
-    dist = multinomial(1, P)  # mutation dist
+def generate_root_nosub(s, n, P):
     while len(s) < n:
-        k = np.argmax(dist.rvs())
+        k = sample_multinomial(P)
         if k == 0:
             s = delete(s)
         else:
@@ -67,10 +95,10 @@ def generate_root_nosub(x, n, P):
 
 
 def seqto4rowmx(s):
-    m = np.zeros((4, len(s)))
+    m = np.zeros((len(s), 4))
     for i in range(len(s)):
-        m[s[i], i] = 1
-    return np.transpose(m)
+        m[i, s[i]] = 1
+    return m
 
 
 def strto4rowmx(s):
@@ -99,7 +127,7 @@ def randdist_period(period, n):
     P_sub = uniform(0, 0.5)
     P_dup = np.zeros(n)
     for i in range(n):
-        P_dup[i] = uniform(2**-(i + 1), 2**-i)
+        P_dup[i] = uniform(2 ** -(i + 1), 2 ** -i)
     P_dup = (1 - P_sub) * P_dup / sum(P_dup)
     P = np.zeros(1 + n * period)
     P[0] = P_sub
@@ -112,7 +140,7 @@ def randdist_period_size(period, n, outputsize):
     P_sub = uniform(0, 0.5)
     P_dup = np.zeros(n)
     for i in range(n):
-        P_dup[i] = uniform(2**-(i + 1), 2**-i)
+        P_dup[i] = uniform(2 ** -(i + 1), 2 ** -i)
     P_dup = (1 - P_sub) * P_dup / sum(P_dup)
     P = np.zeros(outputsize)
     P[0] = P_sub
@@ -127,7 +155,7 @@ def randdist_period_size_del(period, n, outputsize):
     P_ind = P_del + P_sub
     P_dup = np.zeros(n)
     for i in range(n):
-        P_dup[i] = uniform(2**-(i + 1), 2**-i)
+        P_dup[i] = uniform(2 ** -(i + 1), 2 ** -i)
     P_dup = (1 - P_ind) * P_dup / sum(P_dup)
     P = np.zeros(outputsize)
     P[0] = P_del
