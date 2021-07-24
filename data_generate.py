@@ -27,24 +27,24 @@ else:
 start = time.time()
 n = 1000 # string length 
 '''
-deletion = False
 periods = [3]
 n_period = 3
 root_len = 10
-filename = f"train_toy_period{periods}"
 
-n_dist = 4096  # num of dists
+n_dist = 16  # num of dists
 n_sample = 16  # num of samples per dist
-# n_dataset =  10# num of dataset being generated
-datalength = range(128, 129, 32)
+# n_dataset = 10 # num of dataset being generated
+data_len = range(128, 1025, 32)
 
 
 n_requesters = 1
 # n_requesters = 2
 n_workers = 1
-# n_workers = max(1, mp.cpu_count() - n_requesters)
+n_workers = max(1, mp.cpu_count() - n_requesters)
 SequenceClass = SequenceDup
 # SequenceClass = SequenceDupDel
+seq_name = SequenceClass.__name__
+filename = f"up{periods[0]}{seq_name}.train"
 
 
 def gen_requests(request, target_len):
@@ -68,11 +68,11 @@ def gen_samples(requests, output):
 
 def main():
     print("filename:", filename)
-    f_trainX = h5py.File("data/" + "X" + filename, "w")
-    f_trainY = h5py.File("data/" + "Y" + filename, "w")
+    f_trainX = h5py.File("data/" + filename + "X", "w")
+    f_trainY = h5py.File("data/" + filename + "Y", "w")
 
-    for target_len in datalength:
-        print(f"n_dist {n_dist} len: {target_len} {n_period}")
+    for target_len in data_len:
+        print(f"n_dist {n_dist} len: {target_len} np: {n_period} times: {n_sample}")
         in_queue = mp.Queue()
         out_queue = mp.Queue()
         jobs = []
@@ -86,8 +86,8 @@ def main():
             pw.start()
 
         n_data = n_sample * n_dist * len(periods)
-        X = np.empty(shape=(n_data, target_len, 4), dtype=float)
-        Y = np.empty(shape=(n_data, max(periods) * n_period + 2), dtype=float)
+        X = np.empty(shape=(n_data, target_len, 4), dtype=np.int8)
+        Y = np.empty(shape=(n_data, max(periods) * n_period + 2), dtype=np.float16)
         for k in tqdm(range(n_data)):
             x, P = out_queue.get()
             if x is not None:
@@ -109,15 +109,13 @@ def main():
     f_trainY.close()
 
     # %%
-    log = open("data/read_me.txt", "a")
-    log.write("\n")
+    log = open(f"data/{filename}.txt", 'w')
     log.write("Dataset Name: " + filename + "\n")
-    log.write("Deletion = " + str(deletion) + "\n")
     # if deletion == True:
     #    log.write(" del prob = " + str(alpha) + " ")
     log.write("Ndist = " + str(n_dist) + "\n")
     log.write("Nsample = " + str(n_sample) + "\n")
-    log.write("dataset length=" + str(datalength) + "\n")
+    log.write("dataset length=" + str(data_len) + "\n")
     log.write("period=" + str(periods) + "\n")
     log.write("\n")
     log.close()
