@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import tensorflow as tf
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
@@ -12,7 +12,7 @@ import h5py
 import numpy as np
 
 n = 1024
-L = 5
+L = 11
 
 inputs = keras.Input(shape=(n, 4))
 x = inputs
@@ -41,7 +41,7 @@ model.summary()
 model.compile(optimizer="SGD", loss="mean_squared_error")
 print('model compiled')
 # exit()
-sq = 1
+sq = "2,3"
 datafile_name = f"up{sq}SequenceDupDel"
 model_name = f'trainedmodel/m{sq}'
 fX = h5py.File(f'data/{datafile_name}.trainX', 'r')
@@ -64,7 +64,7 @@ for i in range(len(X_index)):
     trainY[:, 0] *= 10
     reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, mode="min",
                                                   patience=3, min_lr=0.00001, min_delta=0.01)
-    model.fit(trainX, trainY, batch_size=1024, epochs=10, validation_split=0.2,
+    model.fit(trainX, trainY, batch_size=512, epochs=10, validation_split=0.2,
               callbacks=[reduce_lr])
 
     testX = np.array(ftX[xindex])
@@ -73,7 +73,7 @@ for i in range(len(X_index)):
     predY = model.predict(testX)
     predY[:, 0] /= 10
     with np.printoptions(precision=4, suppress=True):
-        for i in range(5):
+        for i in range(8):
             print("ground truth", testY[i])
             print("prediction  ", predY[i] * lr_boost / np.sum(predY[i]))
             print('----------------')

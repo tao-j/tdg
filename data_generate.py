@@ -3,12 +3,10 @@ from tqdm import tqdm
 from evolve import *
 import h5py
 
-periods = [1]
+periods = [2,3]
 n_period = 3
 root_len = 10
 
-n_dist = 4096  # num of dists
-n_sample = 16  # num of samples per dist
 # n_dataset = 10 # num of dataset being generated
 data_len = range(1024, 1025, 32)
 
@@ -19,12 +17,18 @@ n_workers = max(1, mp.cpu_count() - n_requesters - 1)
 # SequenceClass = SequenceDup
 SequenceClass = SequenceDupDel
 seq_name = SequenceClass.__name__
-filename = f"up{','.join(periods)}{seq_name}.train"
+n_dist = 4  # num of dists
+n_sample = 1  # num of samples per dist
+filename = f"up{','.join(list(map(str, periods)))}{seq_name}.test"
+# n_dist = 4096  # num of dists
+# n_sample = 16  # num of samples per dist
+# filename = f"up{','.join(list(map(str, periods)))}{seq_name}.train"
 
 
 def gen_requests(request, target_len):
     for pi, period in enumerate(periods):
         output_size = period * n_period + 2
+        output_size = 11
         for di in range(n_dist):
             p = SequenceClass.gen_dist(period, n_period, output_size)
             request.put([p, target_len])
