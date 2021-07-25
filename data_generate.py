@@ -1,50 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 18 19:51:40 2021
-
-@author: hl2nu
-"""
 import multiprocessing as mp
 from tqdm import tqdm
 from evolve import *
 import h5py
 
-'''
-#parameters input
-L = 3 # length of mutation dist
-deletion = False
-alpha = 0.1 #upper bound of prob of del
-beta = 0.5 #lower bound of td of period
-datatype = "train"
-period = 1
-#
-if deletion:
-    L1=L+2
-    filename = datatype + "_L="+str(L)+"_"+str(alpha)
-else:
-    L1=L+1
-    filename = datatype + "_L="+str(L)+"_nodel"
-start = time.time()
-n = 1000 # string length 
-'''
-periods = [3]
+periods = [1]
 n_period = 3
 root_len = 10
 
-n_dist = 16  # num of dists
+n_dist = 4096  # num of dists
 n_sample = 16  # num of samples per dist
 # n_dataset = 10 # num of dataset being generated
-data_len = range(128, 1025, 32)
+data_len = range(1024, 1025, 32)
 
 
 n_requesters = 1
-# n_requesters = 2
 n_workers = 1
-n_workers = max(1, mp.cpu_count() - n_requesters)
-SequenceClass = SequenceDup
-# SequenceClass = SequenceDupDel
+n_workers = max(1, mp.cpu_count() - n_requesters - 1)
+# SequenceClass = SequenceDup
+SequenceClass = SequenceDupDel
 seq_name = SequenceClass.__name__
-filename = f"up{periods[0]}{seq_name}.train"
+filename = f"up{','.join(periods)}{seq_name}.train"
 
 
 def gen_requests(request, target_len):
