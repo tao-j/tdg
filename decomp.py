@@ -6,17 +6,11 @@ def lpf_simple(s, sa, lcp, isa):
     lccp = np.zeros(n + 1)
     lccp[:n] = lcp[:]
     lcp = lccp
-    pre = [0] * n
-    nxt = [0] * n
-    lpf = [0] * n
-    for r in range(n):
-        pre[r] = r - 1
-        nxt[r] = r + 1
-    for i in range(n-1, -1, -1):
-        # print(i)
+    lpf = np.empty_like(sa)
+    pre = np.arange(-1, n - 1, like=sa)
+    nxt = np.arange(1, n + 1, like=sa)
+    for i in range(n - 1, -1, -1):
         r = isa[i]
-        # print(lcp[r])
-        # print('a ', lcp[nxt[r]])
         lpf[i] = max(lcp[r], lcp[nxt[r]])
         lcp[nxt[r]] = min(lcp[r], lcp[nxt[r]])
         if pre[r] >= 0:
@@ -26,15 +20,11 @@ def lpf_simple(s, sa, lcp, isa):
     return lpf
 
 def lzf(lpf, n):
-    lz = np.zeros(n, dtype=np.int64)
-    bl = np.zeros(n, dtype=np.int64)
+    lz = np.empty_like(lpf)
+    bl = np.empty_like(lpf)
     i = 0
     while lz[i] < n:
         bl[i] = max(1, lpf[lz[i]])
         lz[i + 1] = lz[i] + bl[i]
         i += 1
-    return lz, bl, i
-
-# lz, bl, fin = lzf(lpf, n)
-# print(lz[:fin])
-# print(bl[:fin])
+    return lz[1:i+1], bl[:i], i
