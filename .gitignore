@@ -1,0 +1,7 @@
+.spyproject
+__pycache__
+data
+trainedmodel
+.ipynb_checkpoints
+.vscode
+.idea
