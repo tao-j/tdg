@@ -1,10 +1,12 @@
 # %%
 import numpy as np
 from pydivsufsort import divsufsort, kasai
+from decomp import lpf_simple
 
 from time import time
 
-filename = "data/openwrt-all"
+# filename = "data/openwrt-all"
+filename = "data/bash-2.0.txt"
 tt = time()
 s = np.fromfile(filename, dtype=np.byte)
 print("in ", time() - tt)
@@ -28,3 +30,6 @@ tt = time()
 isa = np.empty(sa.shape, sa.dtype)
 isa[sa] = np.arange(len(sa), dtype=sa.dtype)
 print("isa", time() - tt)
+
+lpf = lpf_simple(s, sa, lcp, isa)
+
