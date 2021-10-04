@@ -1,14 +1,14 @@
 # lempel-ziv decomp size
 import copy
 import numpy as np
-def lpf_simple(s, sa, lcp, isa):
-    n = len(sa)
-    lccp = np.zeros(n + 1)
+def lpf_simple(lcp, isa):
+    n = len(isa)
+    lccp = np.empty(n + 1, like=isa)
     lccp[:n] = lcp[:]
     lcp = lccp
-    lpf = np.empty_like(sa)
-    pre = np.arange(-1, n - 1, like=sa)
-    nxt = np.arange(1, n + 1, like=sa)
+    lpf = np.empty_like(isa)
+    pre = np.arange(-1, n - 1, like=isa)
+    nxt = np.arange(1, n + 1, like=isa)
     for i in range(n - 1, -1, -1):
         r = isa[i]
         lpf[i] = max(lcp[r], lcp[nxt[r]])
