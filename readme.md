@@ -31,17 +31,23 @@ zfs | 237M | zstd | yes | yes
 zfs | 316M | zstd | yes | tarball
 sdfs | **371M** | plain | yes | yes
 sdfs | 554M | plain | yes | tarball
+lzf |
+lzf + zlib
+
 
 Note: it is unclear how to let fs to do single-file compression on sdfs
 
 ### Memory consumption
-zfs
+#### zfs
 512B per 128K
 512M per 128G
 5M 1G (bash dataset)
 
-sdfs
+#### sdfs
 256M per 1T
+
+#### lzf
+9n B
 
 ## Reproducing the result
 ### Prepare the data
@@ -63,6 +69,24 @@ Used default compression level on the tarball for popular compression algos.
 -rw-rw-r--  1 user user 280M Sep 29 15:59 bash-gunzipped.tar.gz
 -rw-rw-r--  1 user user 161M Sep 29 15:59 bash-gunzipped.tar.xz
 -rw-rw-r--  1 user user 235M Sep 29 15:59 bash-gunzipped.tar.zst
+```
+
+### Test on dedup.py
+```
+nfa =  11010137
+n = 977172480
+4 bytes encoded offset, offset not compressed
+dedup >=   4,  0.03471796094789734
+dedup >=   8,  0.03695648080469888
+dedup >=  16,  0.04620930790027979
+dedup >=  32,  0.060359436237909604
+dedup >=  64,  0.08135517078827272
+dedup >= 128,  0.10894174383625703
+dedup >= 256,  0.13041918966035557
+dedup >= 512,  0.16419900916571042
+4 bytes encoded offset, offset also compressed
+dedup >=   4  0.03471796094789734
+dedup >=   4 + zlib default 0.03095407373732015
 ```
 
 ### Test on ZFS
@@ -505,3 +529,39 @@ https://btrfs.wiki.kernel.org/index.php/Deduplication
 
 https://github.com/bup/bup
 
+
+```
+in  1.4329192638397217
+sa  61.13642740249634
+kkp 32.06079912185669
+n = 977172480
+977172480 977172480
+Traceback (most recent call last):
+  File "dedup.py", line 89, in <module>
+    for blz in bl:
+NameError: name 'bl' is not defined
+Command exited with non-zero status 1
+	Command being timed: "python dedup.py"
+	User time (seconds): 227.87
+	System time (seconds): 26.29
+	Percent of CPU this job got: 118%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:34.39
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 16510484
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 67
+	Minor (reclaiming a frame) page faults: 8439311
+	Voluntary context switches: 5081
+	Involuntary context switches: 25166
+	Swaps: 0
+	File system inputs: 1916960
+	File system outputs: 7323008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
+```
