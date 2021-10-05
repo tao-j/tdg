@@ -23,11 +23,11 @@ n = len(s)
 if os.path.isfile(filename_npz):
     tt = time()
     loaded = np.load(filename_npz)
-    print("npz ", time() - tt)
     sa = loaded["sa"]
     prv= loaded["prv"]
     lz = loaded["lz"]
     fl = loaded["fl"]
+    print("npz ", time() - tt)
 else:
     tt = time()
     sa = divsufsort(s)
@@ -41,7 +41,7 @@ else:
     prv, lz, fl = kkp3(s, sa)
     print("kkp", time() - tt)
 
-    np.savez_compressed(filename_npz, sa=sa, prv=prv, lz=lz, fl=fl)
+    np.savez(filename_npz, sa=sa, prv=prv, lz=lz, fl=fl)
 
 # tt = time()
 # lz, fl, nf = lzf(lpf, n)
@@ -97,12 +97,20 @@ if __name__ == "__main__":
     encode_len = 0
     ir = 0
     L = 4
+    def GetHumanReadable(size,precision=2):
+        suffixes=['B','KB','MB','GB','TB']
+        suffixIndex = 0
+        while size > 1024 and suffixIndex < 4:
+            suffixIndex += 1 #increment the index of the suffix
+            size = size/1024.0 #apply the division
+        return "%.*f%s"%(precision,size,suffixes[suffixIndex])
 
     print("4 bytes encoded offset, offset not compressed")
-    for i in range(2, 10):
+    for i in range(2, 18):
         idx = fl >= 2 ** i
-        print("dedup >={:4d}, ".format(2 ** i),
-         (n - np.sum(fl[idx]) + np.sum(idx) * 4) / n)
+        sz = (n - np.sum(fl[idx]) + np.sum(idx) * 4) 
+        print("lzf >={:6d}, ".format(2 ** i),
+        sz / n, "|", GetHumanReadable(sz))
 
 
     print("4 bytes encoded offset, offset also compressed")
@@ -122,6 +130,6 @@ if __name__ == "__main__":
     snew = snew[:encode_len]
     zlib_str = zlib.compress(snew)
     compressed_len = len(zlib_str)
-    print(f"dedup >={L:4d} ", (encode_len)/n)
-    print(f"dedup >={L:4d} + zlib default", (compressed_len)/n)
+    print(f"lzf >={L:4d} ", (encode_len)/n, "|", GetHumanReadable(encode_len))
+    print(f"lzf >={L:4d} + zlib default", (compressed_len)/n, "|", GetHumanReadable(compressed_len))
     

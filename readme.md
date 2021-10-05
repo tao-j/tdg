@@ -31,8 +31,25 @@ zfs | 237M | zstd | yes | yes
 zfs | 316M | zstd | yes | tarball
 sdfs | **371M** | plain | yes | yes
 sdfs | 554M | plain | yes | tarball
-lzf |
-lzf + zlib
+lzf >=   4  0.03471796094789734 | 32.35MB
+lzf >=   4 + zlib default 0.03095407373732015 | 28.85MB
+lzf >=     4,  0.03471796094789734 | 32.35MB
+lzf >=     8,  0.03695648080469888 | 34.44MB
+lzf >=    16,  0.04620930790027979 | 43.06MB
+lzf >=    32,  0.060359436237909604 | 56.25MB
+lzf >=    64,  0.08135517078827272 | 75.82MB
+lzf >=   128,  0.10894174383625703 | 101.52MB
+lzf >=   256,  0.13041918966035557 | 121.54MB
+lzf >=   512,  0.16419900916571042 | 153.02MB
+lzf >=  1024,  0.2007353942264113 | 187.07MB
+lzf >=  2048,  0.24981733930943287 | 232.81MB
+lzf >=  4096,  0.31501600208798347 | 293.56MB
+lzf >=  8192,  0.3830357103384655 | 356.95MB
+lzf >= 16384,  0.45359148571191854 | 422.70MB
+lzf >= 32768,  0.518403794998402 | 483.10MB
+lzf >= 65536,  0.5946084584780775 | 554.12MB
+lzf >=131072,  0.6895804679231244 | 642.62MB
+
 
 
 Note: it is unclear how to let fs to do single-file compression on sdfs
@@ -73,20 +90,54 @@ Used default compression level on the tarball for popular compression algos.
 
 ### Test on dedup.py
 ```
+in  2.3375775814056396
+npz  22.67822265625
 nfa =  11010137
 n = 977172480
 4 bytes encoded offset, offset not compressed
-dedup >=   4,  0.03471796094789734
-dedup >=   8,  0.03695648080469888
-dedup >=  16,  0.04620930790027979
-dedup >=  32,  0.060359436237909604
-dedup >=  64,  0.08135517078827272
-dedup >= 128,  0.10894174383625703
-dedup >= 256,  0.13041918966035557
-dedup >= 512,  0.16419900916571042
+lzf >=     4,  0.03471796094789734 | 32.35MB
+lzf >=     8,  0.03695648080469888 | 34.44MB
+lzf >=    16,  0.04620930790027979 | 43.06MB
+lzf >=    32,  0.060359436237909604 | 56.25MB
+lzf >=    64,  0.08135517078827272 | 75.82MB
+lzf >=   128,  0.10894174383625703 | 101.52MB
+lzf >=   256,  0.13041918966035557 | 121.54MB
+lzf >=   512,  0.16419900916571042 | 153.02MB
+lzf >=  1024,  0.2007353942264113 | 187.07MB
+lzf >=  2048,  0.24981733930943287 | 232.81MB
+lzf >=  4096,  0.31501600208798347 | 293.56MB
+lzf >=  8192,  0.3830357103384655 | 356.95MB
+lzf >= 16384,  0.45359148571191854 | 422.70MB
+lzf >= 32768,  0.518403794998402 | 483.10MB
+lzf >= 65536,  0.5946084584780775 | 554.12MB
+lzf >=131072,  0.6895804679231244 | 642.62MB
 4 bytes encoded offset, offset also compressed
-dedup >=   4  0.03471796094789734
-dedup >=   4 + zlib default 0.03095407373732015
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 11010137/11010137 [00:47<00:00, 231524.46it/s]
+lzf >=   4  0.03471796094789734 | 32.35MB
+lzf >=   4 + zlib default 0.03095407373732015 | 28.85MB
+	Command being timed: "python dedup.py"
+	User time (seconds): 65.92
+	System time (seconds): 9.95
+	Percent of CPU this job got: 101%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:14.49
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 5943208
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 5
+	Minor (reclaiming a frame) page faults: 1560555
+	Voluntary context switches: 16206
+	Involuntary context switches: 5321
+	Swaps: 0
+	File system inputs: 8946952
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
 ```
 
 ### Test on ZFS
@@ -528,40 +579,3 @@ Trottled Write Speed : 0 B/s
 https://btrfs.wiki.kernel.org/index.php/Deduplication
 
 https://github.com/bup/bup
-
-
-```
-in  1.4329192638397217
-sa  61.13642740249634
-kkp 32.06079912185669
-n = 977172480
-977172480 977172480
-Traceback (most recent call last):
-  File "dedup.py", line 89, in <module>
-    for blz in bl:
-NameError: name 'bl' is not defined
-Command exited with non-zero status 1
-	Command being timed: "python dedup.py"
-	User time (seconds): 227.87
-	System time (seconds): 26.29
-	Percent of CPU this job got: 118%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:34.39
-	Average shared text size (kbytes): 0
-	Average unshared data size (kbytes): 0
-	Average stack size (kbytes): 0
-	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 16510484
-	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 67
-	Minor (reclaiming a frame) page faults: 8439311
-	Voluntary context switches: 5081
-	Involuntary context switches: 25166
-	Swaps: 0
-	File system inputs: 1916960
-	File system outputs: 7323008
-	Socket messages sent: 0
-	Socket messages received: 0
-	Signals delivered: 0
-	Page size (bytes): 4096
-	Exit status: 1
-```
