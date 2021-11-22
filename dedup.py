@@ -97,18 +97,26 @@ if __name__ == "__main__":
     encode_len = 0
     ir = 0
     L = 4
+    import math
     def GetHumanReadable(size,precision=2):
-        suffixes=['B','KB','MB','GB','TB']
+        suffixes=['B','KiB','MiB','GiB','TiB']
         suffixIndex = 0
         while size > 1024 and suffixIndex < 4:
             suffixIndex += 1 #increment the index of the suffix
             size = size/1024.0 #apply the division
         return "%.*f%s"%(precision,size,suffixes[suffixIndex])
 
-    print("4 bytes encoded offset, offset not compressed")
+    # print("4 bytes encoded offset, offset not compressed")
     for i in range(2, 18):
         idx = fl >= 2 ** i
-        sz = (n - np.sum(fl[idx]) + np.sum(idx) * 4) 
+        # sz = (n - np.sum(fl[idx]) + np.sum(idx) * 4) 
+        sz = n - np.sum(fl[idx])
+        for j in range(0, len(prv) - 2):
+            if prv[j] <= 0:
+                prv_sz = 1
+            else:
+                prv_sz = math.floor(math.log2(prv[j])) / 8.
+            sz += prv_sz + math.floor(math.log2(lz[j+1]-lz[j])) / 8.
         print("lzf >={:6d}, ".format(2 ** i),
         sz / n, "|", GetHumanReadable(sz))
 
