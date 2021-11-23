@@ -128,22 +128,30 @@ if __name__ == "__main__":
         print("lzf >={:6d}, ".format(2 ** i), #sz / n,
          "| <= ", GetHumanReadable(sz + prv_b + fl_b))
 
+    last_char_fn = np.argmax(np.cumsum(prv == -1)) # argmax returns the first occurence
+    ii = 0
+    od = []
+    odi = 0
+    od = np.empty(dtype=np.byte, shape=(256, ))
+    for i in range(last_char_fn + 1):
+        if prv[i] == -1:
+            od[odi] = s[ii]
+            odi += 1
+        ii += max(1, fl[i])
 
-    print("4 bytes encoded offset, offset also compressed")
-    for i in tqdm(range(nfa)):
-        ll = max(1, fl[i])
-        snew[encode_len:encode_len+ll] = snew[ir:ir+ll]
-         
-        if ll < L:
-            encode_len += ll
-        else:
-            # use 4 bytes to denote an offset
-            snew[encode_len:encode_len + 4] = int(prv[i]).to_bytes(4, "little")
-            encode_len += 4
-        ir += ll
-    
-    snew = snew[:encode_len]
-    zlib_str = lzma.compress(snew)
-    compressed_len = len(zlib_str)
-    print(f"lzf >={L:4d} ", (encode_len)/n, "|", GetHumanReadable(encode_len))
-    print(f"lzf >={L:4d} + lzma default", (compressed_len)/n, "|", GetHumanReadable(compressed_len))
+    od = od[:odi]
+    # print(od)
+    print(odi, " od size")
+    with open(filename_dict, "wb") as out_d:
+        od.tofile(out_d)
+        out_d.close()
+    prv.tofile(open(filename_papr, "wb"))
+    fl.tofile(open(filename_pafl, "wb"))
+
+    import lzma, zlib
+    for cmpr in [lzma, zlib]:
+        len1 = len(cmpr.compress(prv))
+        len2 = len(cmpr.compress(fl))
+        print(cmpr.__name__, "saved prv", GetHumanReadable(prv_b - len1))
+        print(cmpr.__name__, "saved fl ", GetHumanReadable(fl_b  - len2))
+
