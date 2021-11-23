@@ -98,13 +98,14 @@ if __name__ == "__main__":
     ir = 0
     L = 4
     import math
-    def GetHumanReadable(size,precision=2):
+    # copied from stackoverflow
+    def GetHumanReadable(size, precision=2):
         suffixes=['B','KiB','MiB','GiB','TiB']
         suffixIndex = 0
         while size > 1024 and suffixIndex < 4:
-            suffixIndex += 1 #increment the index of the suffix
-            size = size/1024.0 #apply the division
-        return "%.*f%s"%(precision,size,suffixes[suffixIndex])
+            suffixIndex += 1 # increment the index of the suffix
+            size = size / 1024.0 # apply the division
+        return "%.*f%s" % (precision,size,suffixes[suffixIndex])
 
     # print("4 bytes encoded offset, offset not compressed")
     for i in range(2, 18):
@@ -120,12 +121,15 @@ if __name__ == "__main__":
         print("lzf >={:6d}, ".format(2 ** i),
         sz / n, "|", GetHumanReadable(sz))
 
+    import lzma 
+    zlib_len = len(lzma.compress(s))
+    print("lzma default", zlib_len / n, "|", GetHumanReadable(zlib_len))
 
     print("4 bytes encoded offset, offset also compressed")
     for i in tqdm(range(nfa)):
         ll = max(1, fl[i])
         snew[encode_len:encode_len+ll] = snew[ir:ir+ll]
-        
+         
         if ll < L:
             encode_len += ll
         else:
@@ -133,11 +137,9 @@ if __name__ == "__main__":
             snew[encode_len:encode_len + 4] = int(prv[i]).to_bytes(4, "little")
             encode_len += 4
         ir += ll
-
-    import zlib 
+    
     snew = snew[:encode_len]
-    zlib_str = zlib.compress(snew)
+    zlib_str = lzma.compress(snew)
     compressed_len = len(zlib_str)
     print(f"lzf >={L:4d} ", (encode_len)/n, "|", GetHumanReadable(encode_len))
-    print(f"lzf >={L:4d} + zlib default", (compressed_len)/n, "|", GetHumanReadable(compressed_len))
-    
+    print(f"lzf >={L:4d} + lzma default", (compressed_len)/n, "|", GetHumanReadable(compressed_len))
