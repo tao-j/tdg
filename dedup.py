@@ -116,23 +116,18 @@ if __name__ == "__main__":
             size = size / 1024.0 # apply the division
         return "%.*f%s" % (precision,size,suffixes[suffixIndex])
 
-    # print("4 bytes encoded offset, offset not compressed")
-    for i in range(2, 18):
+    for i in range(1, 18):
         idx = fl >= 2 ** i
-        # sz = (n - np.sum(fl[idx]) + np.sum(idx) * 4) 
         sz = n - np.sum(fl[idx])
-        for j in range(0, len(prv) - 2):
-            if prv[j] <= 0:
-                prv_sz = 1
-            else:
-                prv_sz = math.floor(math.log2(prv[j])) / 8.
-            sz += prv_sz + math.floor(math.log2(lz[j+1]-lz[j])) / 8.
-        print("lzf >={:6d}, ".format(2 ** i),
-        sz / n, "|", GetHumanReadable(sz))
 
-    import lzma 
-    zlib_len = len(lzma.compress(s))
-    print("lzma default", zlib_len / n, "|", GetHumanReadable(zlib_len))
+        tmp = np.floor(np.log2(np.maximum(1, prv + 1))) * 2 + 1
+        prv_b = np.sum(tmp) / 8.
+        tmp = np.floor(np.log2(np.maximum(1, fl + 1))) * 2 + 1
+        fl_b  = np.sum(tmp) / 8.
+
+        print("lzf >={:6d}, ".format(2 ** i), #sz / n,
+         "| <= ", GetHumanReadable(sz + prv_b + fl_b))
+
 
     print("4 bytes encoded offset, offset also compressed")
     for i in tqdm(range(nfa)):
