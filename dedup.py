@@ -7,11 +7,18 @@ from decomp import lpf_simple, lzf, kkp3
 
 from time import time
 # filename = "data/woodchuck.txt"
-# filename = "data/openwrt-all"
+# filename = "data/test.txt"
+# filename = "data/openwrt.img"
 # filename = "data/mats.img"
 # filename = "data/bash-2.0.txt"
 filename = "data/bash-gunzipped.tar"
+# filename = "openwrt-all.bmp"
+# filename = "data/enwik9"
+# filename = "data/GRCh38_latest_genomic.fna"
 filename_npz = filename + ".npz"
+filename_dict = filename + ".dict"
+filename_papr = filename + ".papr"
+filename_pafl = filename + ".pafl"
 tt = time()
 s = np.fromfile(filename, dtype=np.byte)
 print("in ", time() - tt)
@@ -37,15 +44,17 @@ else:
     # tt = time()
     # lpf = lpf_simple(lcp, isa)
     # print("lpf", time() - tt)
+    # tt = time()
+    # lz, fl, nfa = lzf(lpf, n)
+    # print("lzf", time() - tt)
+
     tt = time()
-    prv, lz, fl = kkp3(s, sa)
+    prv, lz, fl = kkp3(s, sa) # previous occurence index, -1 for none, lz, fl is the factor length
     print("kkp", time() - tt)
 
     np.savez(filename_npz, sa=sa, prv=prv, lz=lz, fl=fl)
 
-# tt = time()
-# lz, fl, nf = lzf(lpf, n)
-# print("lzf", time() - tt)
+
 if n < 50:
     tt = time()
     # the last element of lcp is invalid
