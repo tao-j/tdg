@@ -20,7 +20,7 @@ filename_dict = filename + ".dict"
 filename_papr = filename + ".papr"
 filename_pafl = filename + ".pafl"
 tt = time()
-s = np.fromfile(filename, dtype=np.byte)
+s = np.fromfile(filename, dtype=np.uint8)
 print("in ", time() - tt)
 # s = "A" * 10 + "B" + "A" * 10
 # s = "How many wood would a woodchuck chuck.".encode("ascii")
@@ -102,10 +102,6 @@ if n < 50:
     print("fl ", end=""), prt_spc(fl, fl)
 
 if __name__ == "__main__":
-    snew = bytearray(s)
-    encode_len = 0
-    ir = 0
-    L = 4
     import math
     # copied from stackoverflow
     def GetHumanReadable(size, precision=2):
@@ -141,7 +137,7 @@ if __name__ == "__main__":
 
     od = od[:odi]
     # print(od)
-    print(odi, " od size")
+    print(odi, " od size. aka size of alphabet")
     with open(filename_dict, "wb") as out_d:
         od.tofile(out_d)
         out_d.close()
@@ -150,8 +146,38 @@ if __name__ == "__main__":
 
     import lzma, zlib
     for cmpr in [lzma, zlib]:
+        print("compressing pointers and factor/chuck/block length info")
         len1 = len(cmpr.compress(prv))
         len2 = len(cmpr.compress(fl))
-        print(cmpr.__name__, "saved prv", GetHumanReadable(prv_b - len1))
-        print(cmpr.__name__, "saved fl ", GetHumanReadable(fl_b  - len2))
+        print(cmpr.__name__, "can save prv", GetHumanReadable(prv_b - len1))
+        print(cmpr.__name__, "can save fl ", GetHumanReadable(fl_b  - len2))
 
+    # %%
+    od = np.fromfile(open(filename_dict, "rb"), dtype=np.uint8)
+    prv = np.fromfile(open(filename_papr, "rb"), dtype=np.int32)
+    fl  = np.fromfile(open(filename_pafl, "rb"), dtype=np.int32)
+    ss = np.empty_like(s)
+    odi = 0
+    ll = 0
+    for i in tqdm(range(len(prv))):
+        if prv[i] == -1:
+            ss[ll] = od[odi]
+            ll += 1
+            odi += 1
+        else:
+            # if there are repeated content readches the end of the recovered string, copy one byte at a time
+            # for example consider the case that s = "llllllllll"
+            if prv[i] + fl[i] > ll:
+                for fli in range(fl[i]):
+                    ss[ll + fli] = ss[prv[i] + fli]
+            else:
+                ss[ll:ll+fl[i]] = ss[prv[i]:prv[i]+fl[i]]
+            ll += fl[i]
+
+    print("hash of orig and recovered string")
+    import hashlib
+    for st in [s, ss]:
+        m = hashlib.sha256()
+        m.update(st.data)
+        print(m.hexdigest())
+        # print(st)
