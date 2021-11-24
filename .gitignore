@@ -5,3 +5,8 @@ trainedmodel
 .ipynb_checkpoints
 .vscode
 .idea
+
+
+# Added by cargo
+
+/target
