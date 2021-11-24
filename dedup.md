@@ -1,5 +1,8 @@
 ## TODO
-Rabin Window Borders (http://en.wikipedia.org/wiki/Rabin_fingerprint)
+1. Rabin Window Borders (http://en.wikipedia.org/wiki/Rabin_fingerprint)
+2. Predictatable pointer var-len encoding. Encode according to the frequency of the pointers
+3. Find the first occurence of the chuck
+
 ### Other dedup fs
 https://btrfs.wiki.kernel.org/index.php/Deduplication
 https://github.com/s3ql/s3ql
@@ -52,8 +55,9 @@ lzma can save prv 36.88MiB / 44MiB
 lzma can save fl  3.37MiB / 44MiB
 zlib can save prv 32.39MiB
 zlib can save fl  1.35MiB
-ig prv| 44MiB -> 69MiB -> zlib 48MiB
-ig fl | 44MiB -> 7MiB  -> zlib 5.2MiB
+ig prv| 44MiB -> EG 69MiB -> zlib 48MiB
+ig fl | 44MiB -> EG 7MiB  -> zlib 5.2MiB
+
 
 ### GRHC38
 n = 3313061631
