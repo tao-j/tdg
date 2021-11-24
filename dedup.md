@@ -1,10 +1,17 @@
+## TODO
+Rabin Window Borders (http://en.wikipedia.org/wiki/Rabin_fingerprint)
+### Other dedup fs
+https://btrfs.wiki.kernel.org/index.php/Deduplication
+https://github.com/s3ql/s3ql
+https://github.com/bup/bup
+
 ## Survey of existing dedup systems.
 Both of the following are block based dedup with filesystem level possible compression. Usually files are compressed first then dedupped according to block hash. 
 + zfs
 + sdfs (opendedup)
 
+## Quick summary of performance
 
-### Quick summary of performance
 The following result is from all bash version sources collected from `gnu.org` on July 2021.
 
 Test name | final size | single file compression | block dedup | seperate files
@@ -23,48 +30,62 @@ zfs | 237M | zstd | yes | yes
 zfs | 316M | zstd | yes | tarball
 sdfs | **371M** | plain | yes | yes
 sdfs | 554M | plain | yes | tarball
-lzf >=   4  0.03471796094789734 | 32.35MB
-lzf >=   4 + zlib default 0.03095407373732015 | 28.85MB
-lzf >=   4 + lzma default 0.029561933631205004 | 27.55MB
-lzf >=     4,  0.03471796094789734 | 32.35MB
-lzf >=     8,  0.03695648080469888 | 34.44MB
-lzf >=    16,  0.04620930790027979 | 43.06MB
-lzf >=    32,  0.060359436237909604 | 56.25MB
-lzf >=    64,  0.08135517078827272 | 75.82MB
-lzf >=   128,  0.10894174383625703 | 101.52MB
-lzf >=   256,  0.13041918966035557 | 121.54MB
-lzf >=   512,  0.16419900916571042 | 153.02MB
-lzf >=  1024,  0.2007353942264113 | 187.07MB
-lzf >=  2048,  0.24981733930943287 | 232.81MB
-lzf >=  4096,  0.31501600208798347 | 293.56MB
-lzf >=  8192,  0.3830357103384655 | 356.95MB
-lzf >= 16384,  0.45359148571191854 | 422.70MB
-lzf >= 32768,  0.518403794998402 | 483.10MB
-lzf >= 65536,  0.5946084584780775 | 554.12MB
-lzf >=131072,  0.6895804679231244 | 642.62MB
+zpaq | 161M | | | tarball
+lzf >=     2,  | <=  76.41MiB
+lzf >=     4,  | <=  89.84MiB
+lzf >=     8,  | <=  98.37MiB
+lzf >=    16,  | <=  112.03MiB
+lzf >=    32,  | <=  128.20MiB
+lzf >=    64,  | <=  149.65MiB
+lzf >=   128,  | <=  176.59MiB
+lzf >=   256,  | <=  197.07MiB
+lzf >=   512,  | <=  228.90MiB
+lzf >=  1024,  | <=  263.14MiB
+lzf >=  2048,  | <=  309.00MiB
+lzf >=  4096,  | <=  369.85MiB
+lzf >=  8192,  | <=  433.28MiB
+lzf >= 16384,  | <=  499.05MiB
+lzf >= 32768,  | <=  559.46MiB
+lzf >= 65536,  | <=  630.49MiB
+lzf >=131072,  | <=  718.99MiB
+lzma can save prv 36.88MiB / 44MiB
+lzma can save fl  3.37MiB / 44MiB
+zlib can save prv 32.39MiB
+zlib can save fl  1.35MiB
+ig prv| 44MiB -> 69MiB -> zlib 48MiB
+ig fl | 44MiB -> 7MiB  -> zlib 5.2MiB
 
-nfa =  11010137
-n = 977172480
-lzf >=     4,  0.05368871394126859 | 50.03MiB
-lzf >=     8,  0.06284158734187847 | 58.56MiB
-lzf >=    16,  0.07749514778598758 | 72.22MiB
-lzf >=    32,  0.09485259117203138 | 88.39MiB
-lzf >=    64,  0.11786517335199616 | 109.84MiB
-lzf >=   128,  0.14677102219456692 | 136.78MiB
-lzf >=   256,  0.16875651343558098 | 157.26MiB
-lzf >=   512,  0.20290945847144612 | 189.09MiB
-lzf >=  1024,  0.23964532520400084 | 223.33MiB
-lzf >=  2048,  0.28886406087694977 | 269.19MiB
-lzf >=  4096,  0.3541538396066987 | 330.04MiB
-lzf >=  8192,  0.42222184229952936 | 393.47MiB
-lzf >= 16384,  0.4928022888548806 | 459.24MiB
-lzf >= 32768,  0.5576262317068119 | 519.65MiB
-lzf >= 65536,  0.6338377025824551 | 590.68MiB
-lzf >=131072,  0.7288139200870659 | 679.18MiB
+### GRHC38
+n = 3313061631
+
+Test name | final size | single file compression | block dedup | seperate files
+----: | ----: | ----: | ----: | ----:
+original downloaded gzipped | 900M |  | | 
+uncompressed .fna | 3.1GB |  | | 
+zpaq | 660M |  | | 
+lzf >=     2,  | <=  1.46GiB
+lzf >=     4,  | <=  1.46GiB
+lzf >=     8,  | <=  1.46GiB
+lzf >=    16,  | <=  3.02GiB
+lzf >=    32,  | <=  3.97GiB
+lzf >=    64,  | <=  4.25GiB
+lzf >=   128,  | <=  4.34GiB
+lzf >=   256,  | <=  4.36GiB
+lzf >=   512,  | <=  4.37GiB
+lzf >=  1024,  | <=  4.38GiB
+lzf >=  2048,  | <=  4.38GiB
+lzf >=  4096,  | <=  4.38GiB
+lzf >=  8192,  | <=  4.38GiB
+lzf >= 16384,  | <=  4.38GiB
+lzf >= 32768,  | <=  4.38GiB
+lzf >= 65536,  | <=  4.39GiB
+lzf >=131072,  | <=  4.40GiB
+lzma can save prv 585.27MiB
+lzma can save fl  94.12MiB
+zlib can save prv 442.81MiB
+zlib can save fl  36.21MiB
 
 
-
-Note: it is unclear how to let fs to do single-file compression on sdfs
 
 ### Memory consumption
 #### zfs
@@ -74,9 +95,9 @@ Note: it is unclear how to let fs to do single-file compression on sdfs
 
 #### sdfs
 256M per 1T
-
+Note: it is unclear how to let fs to do single-file compression on sdfs
 #### lzf
-9n B
+9B per B
 
 ## Reproducing the result
 ### Prepare the data
@@ -102,31 +123,8 @@ Used default compression level on the tarball for popular compression algos.
 
 ### Test on dedup.py
 ```
-in  2.3375775814056396
-npz  22.67822265625
-nfa =  11010137
-n = 977172480
-4 bytes encoded offset, offset not compressed
-lzf >=     4,  0.03471796094789734 | 32.35MB
-lzf >=     8,  0.03695648080469888 | 34.44MB
-lzf >=    16,  0.04620930790027979 | 43.06MB
-lzf >=    32,  0.060359436237909604 | 56.25MB
-lzf >=    64,  0.08135517078827272 | 75.82MB
-lzf >=   128,  0.10894174383625703 | 101.52MB
-lzf >=   256,  0.13041918966035557 | 121.54MB
-lzf >=   512,  0.16419900916571042 | 153.02MB
-lzf >=  1024,  0.2007353942264113 | 187.07MB
-lzf >=  2048,  0.24981733930943287 | 232.81MB
-lzf >=  4096,  0.31501600208798347 | 293.56MB
-lzf >=  8192,  0.3830357103384655 | 356.95MB
-lzf >= 16384,  0.45359148571191854 | 422.70MB
-lzf >= 32768,  0.518403794998402 | 483.10MB
-lzf >= 65536,  0.5946084584780775 | 554.12MB
-lzf >=131072,  0.6895804679231244 | 642.62MB
-4 bytes encoded offset, offset also compressed
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 11010137/11010137 [00:47<00:00, 231524.46it/s]
-lzf >=   4  0.03471796094789734 | 32.35MB
-lzf >=   4 + zlib default 0.03095407373732015 | 28.85MB
+Just run the code 
+```
 	Command being timed: "python dedup.py"
 	User time (seconds): 65.92
 	System time (seconds): 9.95
@@ -150,6 +148,7 @@ lzf >=   4 + zlib default 0.03095407373732015 | 28.85MB
 	Signals delivered: 0
 	Page size (bytes): 4096
 	Exit status: 0
+```
 ```
 
 ### Test on ZFS
@@ -586,10 +585,3 @@ DSE Max Cache Size : 10 GB
 Trottled Read Speed : 0 B/s
 Trottled Write Speed : 0 B/s
 ```
-## TODO
-### Other dedup fs
-Rabin Window Borders (http://en.wikipedia.org/wiki/Rabin_fingerprint)
-
-https://btrfs.wiki.kernel.org/index.php/Deduplication
-https://github.com/s3ql/s3ql
-https://github.com/bup/bup
