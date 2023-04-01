@@ -1,17 +1,19 @@
 # %%
 import numpy as np
-from pydivsufsort import divsufsort, kasai
 import os
+import math
 from tqdm import tqdm
 from decomp import lpf_simple, lzf, kkp3
-
+from pydivsufsort import divsufsort, kasai
 from time import time
+
 # filename = "data/woodchuck.txt"
 # filename = "data/test.txt"
 # filename = "data/openwrt.img"
 # filename = "data/mats.img"
 # filename = "data/bash-2.0.txt"
 filename = "data/bash-gunzipped.tar"
+# filename = "data/grch38.1"
 # filename = "openwrt-all.bmp"
 # filename = "data/enwik9"
 # filename = "data/GRCh38_latest_genomic.fna"
@@ -27,7 +29,7 @@ print("in ", time() - tt)
 # s = "ABCDAABCF"
 n = len(s)
 
-if os.path.isfile(filename_npz):
+if False and os.path.isfile(filename_npz):
     tt = time()
     loaded = np.load(filename_npz)
     sa = loaded["sa"]
@@ -102,7 +104,6 @@ if n < 50:
     print("fl ", end=""), prt_spc(fl, fl)
 
 if __name__ == "__main__":
-    import math
     # copied from stackoverflow
     def GetHumanReadable(size, precision=2):
         suffixes=['B','KiB','MiB','GiB','TiB']
@@ -112,17 +113,20 @@ if __name__ == "__main__":
             size = size / 1024.0 # apply the division
         return "%.*f%s" % (precision,size,suffixes[suffixIndex])
 
-    for i in range(1, 18):
+    tmp = np.floor(np.log2(np.maximum(1, prv + 1))) * 2 + 1
+    prv_b = np.sum(tmp) / 8.
+    tmp = np.floor(np.log2(np.maximum(1, fl + 1))) * 2 + 1
+    fl_b  = np.sum(tmp) / 8.
+    for i in range(1, 17):
         idx = fl >= 2 ** i
         sz = n - np.sum(fl[idx])
 
-        tmp = np.floor(np.log2(np.maximum(1, prv + 1))) * 2 + 1
-        prv_b = np.sum(tmp) / 8.
-        tmp = np.floor(np.log2(np.maximum(1, fl + 1))) * 2 + 1
-        fl_b  = np.sum(tmp) / 8.
-
         print("lzf >={:6d}, ".format(2 ** i), #sz / n,
          "| <= ", GetHumanReadable(sz + prv_b + fl_b))
+
+    prv.tofile(open(filename_papr, "wb"))
+    fl.tofile(open(filename_pafl, "wb"))
+    print("saved papr papl")
 
     last_char_fn = np.argmax(np.cumsum(prv == -1)) # argmax returns the first occurence
     ii = 0
@@ -141,16 +145,15 @@ if __name__ == "__main__":
     with open(filename_dict, "wb") as out_d:
         od.tofile(out_d)
         out_d.close()
-    prv.tofile(open(filename_papr, "wb"))
-    fl.tofile(open(filename_pafl, "wb"))
+
 
     import lzma, zlib
-    for cmpr in [lzma, zlib]:
+    for cmpr in [zlib]:
         print("compressing pointers and factor/chuck/block length info")
-        len1 = len(cmpr.compress(prv))
-        len2 = len(cmpr.compress(fl))
-        print(cmpr.__name__, "can save prv", GetHumanReadable(prv_b - len1))
-        print(cmpr.__name__, "can save fl ", GetHumanReadable(fl_b  - len2))
+        len_pr = len(cmpr.compress(prv))
+        len_fl = len(cmpr.compress(fl))
+        print(cmpr.__name__, "can save prv", GetHumanReadable(prv_b - len_pr))
+        print(cmpr.__name__, "can save fl ", GetHumanReadable(fl_b  - len_fl))
 
     # %%
     od = np.fromfile(open(filename_dict, "rb"), dtype=np.uint8)
