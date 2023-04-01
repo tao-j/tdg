@@ -70,10 +70,14 @@ def kkp3(bytea_t[::1] X not None, idx_t[::1] sa not None):
     cdef np.ndarray[idx_t, ndim=1] lz = np.empty_like(sa)
     cdef np.ndarray[idx_t, ndim=1] fl = np.empty_like(sa)
     cdef np.ndarray[idx_t, ndim=1] prv = np.empty_like(sa)
+    cdef np.ndarray[idx_t, ndim=1] isa = np.empty_like(sa)
     cdef np.ndarray[idx_t, ndim=1] SA = np.empty_like(sa, shape=(len(sa) + 2, ))
 
-    cdef idx_t i, psv, nsv, nfactors
+    cdef idx_t i, sa_i, psv, nsv, nfactors
     cdef idx_t pos, ll
+
+    for i in range(n):
+        isa[sa[i]] = i
 
     if n == 0:
         return np.array([]), np.array([]), np.array([])
@@ -122,11 +126,25 @@ def kkp3(bytea_t[::1] X not None, idx_t[::1] sa not None):
                 ll += 1
                 while X[i + ll] == X[psv + ll]:
                     ll += 1
+                ll -= 1
                 pos = psv
+                sa_i = isa[psv]
+                while sa_i > 0 and sa[sa_i - 1] + ll < n \
+                    and X[sa[sa_i - 1] + ll] == X[i + ll]:
+                    sa_i -= 1
+                    pos = min(sa[sa_i], pos)
+                ll += 1
             else:
                 while i + ll < n and X[i + ll] == X[nsv + ll]:
                     ll += 1
+                ll -= 1
                 pos = nsv
+                sa_i = isa[nsv]
+                while sa_i < n - 1 and sa[sa_i + 1] + ll < n \
+                    and X[sa[sa_i + 1] + ll] == X[i + ll]:
+                    sa_i += 1
+                    pos = min(sa[sa_i], pos)
+                ll += 1
     
         if ll == 0:
             pos = -1
