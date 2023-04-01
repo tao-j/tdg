@@ -1,5 +1,20 @@
 
 # Log
+## TODO2
+cover's book compression
+
+1. fix pointers in lzf
+72M bash-gunzipeed.zpaq tarball compressed by zpaq
+26M bash-gunzipped-separate.zpaq  seperate file compressed by zpaq
+34M bash-not-first-prt.zpaq lzf then zpaq
+34M bash-first-prt.zpaq (-0.04MB) lzf, if the same string occurred multiple times, points to ealiest occurence possible. then zpaq.
+
+Modified the KKP3 algorithm so that it points to the first occurence of the same pattern. The space saved is not much. It could be that the files are modified incrementally in a pattern similar to "a-ab-abc-abcd", so they all point to the previous occurence, since that is the longest match.
+
+2. zlib make deflate to have infiniate windows size
+zlib uses deflate, window size can be modified, but it has to output in deflate format which it complicated to learn.
+
+
 ## TODO
 1. Predictatable pointer var-len encoding. Encode according to the frequency of the pointers
 2. Find the first occurence of the chuck
