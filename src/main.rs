@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
 use std::{mem, slice};
+use std::cmp;
 
 use bitvec::prelude::*;
 // use bitvec::view::BitViewSized;
@@ -9,7 +10,7 @@ use bitvec::prelude::*;
 // use indicatif::ProgressBar;
 
 
-fn encode(filename: String) {
+fn encode() {
     let path = Path::new("data/ig.ori");
     let display = path.display();
     let mut fi = match File::open(&path) {
@@ -29,8 +30,10 @@ fn encode(filename: String) {
         )
     };
 
+    let mut min_lzs = 32;
     let mut bv: BitVec<Msb0, u8> = BitVec::new();
     // let bar = ProgressBar::new(bv.len() as u64);
+    println!("num of nums to encode {}", ev.len());
     for v in ev.iter() {
         // bar.inc(1);
         let mut value = *v;
@@ -42,16 +45,17 @@ fn encode(filename: String) {
         }
         assert!(value > 0, "Elias Gamma only encodes >0 value.");
         let lzs = value.leading_zeros();
-        let nbits: u32 = 32 - lzs - 1;
+        // let nbits: u32 = 32 - lzs - 1;
 
         // println!("nb{}", nbits);
-        for _ in 0 .. nbits {
-            bv.push(false);
-        }
-        bv.push(true);
-        value = value << lzs;
+        min_lzs = cmp::min(lzs, min_lzs);
+        // for _ in 0 .. nbits {
+        //     bv.push(false);
+        // }
+        // bv.push(true);
+        value = value << min_lzs;
         // print!("{}", data);
-        for _ in 0 .. nbits {
+        for _ in 0 .. (32 - min_lzs - 1) {
             bv.push(value & 0x4000_0000i32 == 0x4000_0000i32);
             value = value << 1;
         }
@@ -153,7 +157,7 @@ fn decode() {
 }
 
 fn main() {
-    let mut filename = String::from("data/ig");
-    encode(filename);
+    // let mut filename = String::from("data/ig");
+    encode();
     decode();
 }
