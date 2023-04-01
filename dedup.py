@@ -113,10 +113,14 @@ if __name__ == "__main__":
             size = size / 1024.0 # apply the division
         return "%.*f%s" % (precision,size,suffixes[suffixIndex])
 
+    # number of bits for each pointer
+    # TODO: why we need *2? for the sign?
     tmp = np.floor(np.log2(np.maximum(1, prv + 1))) * 2 + 1
     prv_b = np.sum(tmp) / 8.
     tmp = np.floor(np.log2(np.maximum(1, fl + 1))) * 2 + 1
     fl_b  = np.sum(tmp) / 8.
+    # given the whole string, replace repeated substrings longer then 2^i with a pointer
+    # provides a rough estimate of compressed size
     for i in range(1, 17):
         idx = fl >= 2 ** i
         sz = n - np.sum(fl[idx])
@@ -127,10 +131,10 @@ if __name__ == "__main__":
     prv.tofile(open(filename_papr, "wb"))
     fl.tofile(open(filename_pafl, "wb"))
     print("saved papr papl")
-
+    
+    # for each of the never occured strings, assign a word id
     last_char_fn = np.argmax(np.cumsum(prv == -1)) # argmax returns the first occurence
     ii = 0
-    od = []
     odi = 0
     od = np.empty(dtype=np.byte, shape=(256, ))
     for i in range(last_char_fn + 1):
@@ -141,6 +145,9 @@ if __name__ == "__main__":
 
     od = od[:odi]
     # print(od)
+    # print and save the dictionary
+    # note that the dictory for byte data is never going to be larger than 256
+    # so there is a trade off bewteen using how many bits to represent each character in the original string
     print(odi, " od size. aka size of alphabet")
     with open(filename_dict, "wb") as out_d:
         od.tofile(out_d)
@@ -156,6 +163,7 @@ if __name__ == "__main__":
         print(cmpr.__name__, "can save fl ", GetHumanReadable(fl_b  - len_fl))
 
     # %%
+    # try to recover the string and see if it matches the original
     od = np.fromfile(open(filename_dict, "rb"), dtype=np.uint8)
     prv = np.fromfile(open(filename_papr, "rb"), dtype=np.int32)
     fl  = np.fromfile(open(filename_pafl, "rb"), dtype=np.int32)

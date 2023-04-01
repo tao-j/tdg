@@ -1,3 +1,5 @@
+
+# Log
 ## TODO
 1. Predictatable pointer var-len encoding. Encode according to the frequency of the pointers
 2. Find the first occurence of the chuck
@@ -8,12 +10,20 @@ https://btrfs.wiki.kernel.org/index.php/Deduplication
 https://github.com/s3ql/s3ql
 https://github.com/bup/bup
 
-## Survey of existing dedup systems.
-Both of the following are block based dedup with filesystem level possible compression. Usually files are compressed first then dedupped according to block hash. 
-+ zfs
-+ sdfs (opendedup)
 
 ## Quick summary of performance
+The following result is from all bash version sources collected from `gnu.org` on July 2021.
+zpaq went from several stages of the compresion 939.704592 -> 458.117390 -> 26.830258 MB
+
+### GRHC38
+n = 3313061631
+
+Test name | final size | single file compression | block dedup | seperate files
+----: | ----: | ----: | ----: | ----:
+original downloaded gzipped | 900M |  | | 
+uncompressed .fna | 3.1GB |  | | 
+zpaq | 660M |  | | 
+
 
 ```
 read 44040548 bytes from data/ig.ori
@@ -40,87 +50,6 @@ enwik9 226*2 - 170 = 282 MiB
 enwik9.zpaq 161 MiB
 ```
 
-
-The following result is from all bash version sources collected from `gnu.org` on July 2021.
-
-Test name | final size | single file compression | block dedup | seperate files
-----: | ----: | ----: | ----: | ----:
-original downloaded gzipped | 296M |  | | no
-uncompressed separate files | 1022MB | ext4 | | yes
-plain | 932M | tar |  | tarball
-xz (LZMA) | **161M** | | | tarball
-zstd (Entropy) | 235M | | | tarball
-gz (Entropy) | 280M | | | tarball
-zfs | 1.19G | plain | no | yes
-zfs | **648M** | plain | yes | yes
-zfs | 935M | plain | yes | tarball
-zfs | 474M | zstd | no | yes
-zfs | 237M | zstd | yes | yes
-zfs | 316M | zstd | yes | tarball
-sdfs | **371M** | plain | yes | yes
-sdfs | 554 M | plain | yes | tarball
-zpaq | 72 MiB | | | tarball 
-zpaq | 939.704592 -> 458.117390 -> 26.830258 MB | | yes | yes
-ig prv| 44MiB -> EG 69MiB -> zlib 48MiB
-ig fl | 44MiB -> EG 7MiB  -> zlib 5.2MiB
-lzf >=     2,  | <=  76.41MiB
-lzf >=     4,  | <=  89.84MiB
-lzf >=     8,  | <=  98.37MiB
-lzf >=    16,  | <=  112.03MiB
-lzf >=    32,  | <=  128.20MiB
-lzf >=    64,  | <=  149.65MiB
-lzf >=   128,  | <=  176.59MiB
-lzf >=   256,  | <=  197.07MiB
-rab E 256 | >= 203.37
-lzf >=   512,  | <=  228.90MiB
-rab E 512 | >= 255.06 MiB
-lzf >=  1024,  | <=  263.14MiB
-rab E 1024 | >= 308.66 MiB
-lzf >=  2048,  | <=  309.00MiB
-rab E 2048 | >= 368.40 MiB
-lzf >=  4096,  | <=  369.85MiB
-rab E 4096 | >= 432.43 MiB
-lzf >=  8192,  | <=  433.28MiB
-lzf >= 16384,  | <=  499.05MiB
-lzf >= 32768,  | <=  559.46MiB
-lzf >= 65536,  | <=  630.49MiB
-lzf >=131072,  | <=  718.99MiB
-lzma can save prv 36.88MiB / 44MiB
-lzma can save fl  3.37MiB / 44MiB
-zlib can save prv 32.39MiB
-zlib can save fl  1.35MiB
-
-
-### GRHC38
-n = 3313061631
-
-Test name | final size | single file compression | block dedup | seperate files
-----: | ----: | ----: | ----: | ----:
-original downloaded gzipped | 900M |  | | 
-uncompressed .fna | 3.1GB |  | | 
-zpaq | 660M |  | | 
-
-
-
-### Memory consumption
-#### zpaq
-avg 64KB
-1K per 1M
-
-When adding files, zpaq uses a rolling hash function to split files into fragments with an average size of 64 KB along content-dependent boundaries. Then it computes the SHA-1 hash of the fragment and compares it with saved hashes from the current and previous versions. If it finds a match then the fragment is not stored.
-
-Deduplication requires 1 MB of memory per GB of deduplicated but uncompressed archive data to update, and 0.5 MB per GB to list or extract. 
-
-#### zfs
-512B per 128K
-512M per 128G
-5M 1G (bash dataset)
-
-#### sdfs
-256M per 1T
-Note: it is unclear how to let fs to do single-file compression on sdfs
-#### lzf
-9B per B
 
 ## Reproducing the result
 ### Prepare the data
